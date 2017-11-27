@@ -278,6 +278,31 @@ Logs: <${logUrl}>`;
   msg.channel.delete();
 });
 
+utils.addInboxCommand('invite', async (msg, args, thread) => {
+  let userId = args[0];
+  const dmChannel = await bot.getDMChannel(userId);
+  let content = `You have been invited to converse with the server moderators. You may do so by replying to this DM.`;
+
+  async function sendMessage(file, attachmentUrl) {
+    try {
+      await dmChannel.createMessage(content, file);
+    } catch (e) {
+      if (e.resp && e.resp.statusCode === 403) {
+        msg.channel.createMessage(`Could not send invite; the user has likely left the server or blocked the bot`);
+      } else if (e.resp) {
+        msg.channel.createMessage(`Could not send invite; error code ${e.resp.statusCode}`);
+      } else {
+        msg.channel.createMessage(`Could not send invite: ${e.toString()}`);
+      }
+    }
+
+    // Show the invitation success message in the modmail thread as well
+    msg.channel.createMessage(`User was DMed.`);
+  };
+
+  sendMessage();
+});
+
 utils.addInboxCommand('block', (msg, args, thread) => {
   async function block(userId) {
     await blocked.block(userId);
